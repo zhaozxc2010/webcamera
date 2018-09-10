@@ -1,9 +1,6 @@
 package webcam;
-import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.GridLayout;
-import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
@@ -11,6 +8,16 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.File;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.swing.Box;
 import javax.swing.ImageIcon;
@@ -26,6 +33,8 @@ import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 
+import org.apache.log4j.Logger;
+
 import com.github.sarxos.webcam.Webcam;
 import com.github.sarxos.webcam.WebcamPanel;
 import com.github.sarxos.webcam.WebcamResolution;
@@ -33,6 +42,8 @@ import com.github.sarxos.webcam.WebcamUtils;
 import com.github.sarxos.webcam.util.ImageUtils;
 
 public class WebCam {
+	private Logger logger=Logger.getLogger(this.getClass());
+
 	private static int num = 0;
 	private static int width = 640;
 	private static int height = 480;
@@ -74,12 +85,12 @@ public class WebCam {
         fileMenu.setMnemonic(KeyEvent.VK_F);
         
         ImageIcon exportIcon = new ImageIcon("pic/exportIcon.jpg");
-        JMenuItem fileExport = new JMenuItem("导出Excel", exportIcon);
+        JMenuItem fileExport = new JMenuItem("一键导出Excel", exportIcon);
         fileExport.setMnemonic(KeyEvent.VK_E);
-        fileExport.setToolTipText("导出Excel");
+        fileExport.setToolTipText("一键导出Excel");
         fileExport.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent event) {
-        		
+        		new WebCam().exportExcel();
         	}
         });
         
@@ -195,11 +206,16 @@ public class WebCam {
             		webcam.close();
             	}
                 System.exit(0);
+                try {
+					DBUtils.closeResource(DBUtils.getConnection());
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
             }
         });
         if(checkCamera){
         	System.out.println("相机打开成功");        	
-        	modifyComponentSize(window);
+        	Utils.modifyComponentSize(window);
         }else{
         	JOptionPane.showMessageDialog(null, "请检查是否连接相机");
         	//System.exit(0);
@@ -212,42 +228,65 @@ public class WebCam {
         	}});
 	}
 	
+	
 	/**
-	 * 控件自适应分辨率
-	 * @param window
+	 * 导出excel
 	 */
-	private static void modifyComponentSize(JFrame window) {
-		int fraWidth = window.getWidth();//frame的宽
-		int fraHeight = window.getHeight();//frame的高
-		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-		int screenWidth = screenSize.width;
-		int screenHeight = screenSize.height;
-		float proportionW = screenWidth/fraWidth;
-		float proportionH = screenHeight/fraHeight;
-		
-		try 
-		{
-			Component[] components = window.getRootPane().getContentPane().getComponents();
-			for(Component co:components)
-			{
-				float locX = co.getX() * proportionW;
-				float locY = co.getY() * proportionH;
-				float width = co.getWidth() * proportionW;
-				float height = co.getHeight() * proportionH;
-				co.setLocation((int)locX, (int)locY);
-				co.setSize((int)width, (int)height);
-				int size = (int)(co.getFont().getSize() * proportionH);
-				Font font = new Font(co.getFont().getFontName(), co.getFont().getStyle(), size);
-				co.setFont(font);
+	protected void exportExcel() {
+		try {
+			// 1. 读取照片地址
+	    	String path = Utils.getPropertyValue(this.getClass(),"config.properties", "path");
+	    	List<String>  photoPathList = Utils.getPhotoPathListFromFile(path);
+	    	
+			// 2. 读取goodsList.txt，循环每一行，获取barcodes
+	    	String goodsListTextPath = Utils.getPropertyValue(this.getClass(),"config.properties", "goodsListTextPath");
+	    	List<String>  barcodesList = Utils.getLineListFromFile(goodsListTextPath);
+	    	
+	    	// 3. 根据barcode提取商品信息
+	    	List<HashMap<String, String>> goodsInfoList = new ArrayList<HashMap<String, String>>();  
+	    	for(String barcodes : barcodesList){
+	    		HashMap<String, String> map = Utils.getGoodsInfoFromDB(barcodes);
+	    		if(map!=null && map.isEmpty() == false){
+	    			goodsInfoList.add(map);
+	    		}
+	    	}
+	    	//DBUtils.closeResource(DBUtils.getConnection());
+	    	
+	    	// 照片地址补充进商品信息
+	    	String excelPhotoPath = Utils.getPropertyValue(this.getClass(),"config.properties", "excelPhotoPath");
+	    	if(photoPathList.size() != goodsInfoList.size()){
+				System.out.println("error:照片数量和文本记录条数不一致，导出失败！");
+				return;
 			}
-		} 
-		catch (Exception e) 
-		{
-			// TODO: handle exception
+			for(int i = 0;i<photoPathList.size();i++){
+				HashMap<String, String> map  = goodsInfoList.get(i);
+				map.put("path", excelPhotoPath + "\\" + photoPathList.get(i));
+			}
+			
+			// 5. 组装数据生成excel
+	    	String exportPath = Utils.getPropertyValue(this.getClass(), "config.properties", "exportPath");
+	    	boolean exportFlag = Utils.exportGoodsExcel(exportPath, goodsInfoList);
+		
+	    	if(exportFlag){
+	    		int result = JOptionPane.showConfirmDialog(null, "导出成功，是否打开文件所在目录？");
+		    	if(result == 0){
+					try {
+						java.awt.Desktop.getDesktop().open(new File(path));
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+		    	}
+	    	}else{
+	    		JOptionPane.showMessageDialog(null, "导出失败！");	    		
+	    	}
+	    	
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-
 	}
-
+	
+	
 
 	public static void main(String[] args) throws InterruptedException {
 		start();
