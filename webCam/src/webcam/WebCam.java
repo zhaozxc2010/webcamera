@@ -252,7 +252,7 @@ public class WebCam {
 	    	}
 	    	//DBUtils.closeResource(DBUtils.getConnection());
 	    	
-	    	// 照片地址补充进商品信息
+	    	// 4. 照片地址补充进商品信息
 	    	String excelPhotoPath = Utils.getPropertyValue(this.getClass(),"config.properties", "excelPhotoPath");
 	    	if(photoPathList.size() != goodsInfoList.size()){
 				System.out.println("error:照片数量和文本记录条数不一致，导出失败！");
