@@ -473,7 +473,7 @@ public class Utils
 			    row.createCell(5).setCellValue(map.get("barcode3")== null ? "" : map.get("barcode3"));
 			    row.createCell(6).setCellValue(map.get("goodsName3")== null ? "" : map.get("barcode3")== null ? "" : map.get("goodsName3") + "(" +  map.get("barcode3") + ")");
 			    row.createCell(7).setCellValue(map.get("barcode4")== null ? "" : map.get("barcode4"));
-			    row.createCell(7).setCellValue(map.get("goodsName4")== null ? "" : map.get("barcode4")== null ? "" : map.get("goodsName4") + "(" +  map.get("barcode4") + ")");
+			    row.createCell(8).setCellValue(map.get("goodsName4")== null ? "" : map.get("barcode4")== null ? "" : map.get("goodsName4") + "(" +  map.get("barcode4") + ")");
 			    row.createCell(9).setCellValue(map.get("barcode5")== null ? "" : map.get("barcode5"));
 			    row.createCell(10).setCellValue(map.get("goodsName5")== null ? "" : map.get("barcode5")== null ? "" : map.get("goodsName5") + "(" +  map.get("barcode5") + ")");
 			    row.createCell(11).setCellValue(map.get("barcode6")== null ? "" : map.get("barcode6"));
