@@ -1,4 +1,5 @@
 package webcam;
+
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
@@ -10,18 +11,14 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.swing.Box;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -30,10 +27,15 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.JTable;
 import javax.swing.JTextArea;
+import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 
 import org.apache.log4j.Logger;
+
+import webcam.DBUtils;
+import webcam.Utils;
 
 import com.github.sarxos.webcam.Webcam;
 import com.github.sarxos.webcam.WebcamPanel;
@@ -74,10 +76,6 @@ public class WebCam {
         	checkCamera = false;
         }
         
-        // 面板
-        final JFrame window = new JFrame("图像采集");
-        JPanel jp1 = new JPanel(new GridLayout(1, 1));
-        JPanel jp2 = new JPanel(new GridLayout(1, 2));
 
         // 导航栏
         JMenuBar menuBar = new JMenuBar();
@@ -104,11 +102,17 @@ public class WebCam {
         	}
         });
 
+        // 面板
+        final JFrame window = new JFrame("图像采集");
+        JPanel jp1 = new JPanel(new GridLayout(1, 1));
+        JPanel jp2 = new JPanel(new GridLayout(1, 2));
+        JPanel jp3 = new JPanel(new GridLayout(1, 1));
+        
         // 控件
         final JTextArea textarea = new JTextArea();
         final JScrollPane jsp = new JScrollPane(textarea);
         final JButton photoButton = new JButton("拍照");
-        final JButton nextButton = new JButton("下一组");
+        final JButton nextButton = new JButton("清空");
         
         // 排版
         fileMenu.add(fileExport);
@@ -136,11 +140,15 @@ public class WebCam {
         window.pack();
         window.setVisible(true);
         window.setLocation(Utils.getWindowCenterWidth(width), Utils.getWindowCenterHeight(height));
-        
+
+
+
         // 拍照
+        photoButton.setMnemonic(KeyEvent.VK_S);
         photoButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e)
             {
+
             	photoButton.setEnabled(false);
             	
             	String textValue = textarea.getText();
@@ -186,6 +194,7 @@ public class WebCam {
             }
         });
         
+        nextButton.setMnemonic(KeyEvent.VK_DELETE);
         nextButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e)
             {
