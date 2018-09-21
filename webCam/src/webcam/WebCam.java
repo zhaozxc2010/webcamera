@@ -11,7 +11,9 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -20,6 +22,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -106,36 +109,41 @@ public class WebCam {
         final JFrame window = new JFrame("图像采集");
         JPanel jp1 = new JPanel(new GridLayout(1, 1));
         JPanel jp2 = new JPanel(new GridLayout(1, 2));
-        JPanel jp3 = new JPanel(new GridLayout(1, 1));
+        JPanel jp3 = new JPanel();
+        JPanel jp4 = new JPanel(new GridLayout(1, 1));
         
         // 控件
         final JTextArea textarea = new JTextArea();
-        final JScrollPane jsp = new JScrollPane(textarea);
+        final JScrollPane jsp = new JScrollPane(textarea);//滚动条方法一
+        //jsp.setViewportView(textarea);//滚动条方法二
+        
         final JButton photoButton = new JButton("拍照");
         final JButton nextButton = new JButton("清空");
+        JLabel successLabel = new JLabel();
+        JLabel imgLabel = new JLabel();
         
         // 排版
         fileMenu.add(fileExport);
         fileMenu.add(fileClose);
         menuBar.add(fileMenu);
         
-        jp1.add(textarea);
+        jp1.add(jsp);
         jp2.add(photoButton);
         jp2.add(nextButton);
-        JSplitPane jsplit = new JSplitPane(0, jp1, jsp);
-        window.getContentPane().add(jsplit);
+        jp3.add(successLabel);
+        jp4.add(imgLabel);
         
-        
+       
         // 创建一个垂直盒子容器, 把上面 3 个 JPanel 串起来作为内容面板添加到窗口
         Box vBox = Box.createVerticalBox();
         if(checkCamera){
         	vBox.add(camPanel);
         }	
+        //vBox.add(jp3);
         vBox.add(jp1);
         vBox.add(jp2);
         window.setContentPane(vBox);
         window.setJMenuBar(menuBar);
-        
         // 设置窗口参数
         window.pack();
         window.setVisible(true);
@@ -148,7 +156,6 @@ public class WebCam {
         photoButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e)
             {
-
             	photoButton.setEnabled(false);
             	
             	String textValue = textarea.getText();
@@ -187,6 +194,7 @@ public class WebCam {
                     {
                         //JOptionPane.showMessageDialog(null, "截图成功");
                         photoButton.setEnabled(true);
+                    	successLabel.setText("成功： " + new SimpleDateFormat("YYYY-MM-dd HH:mm:ss").format(new Date()));
                         num++;
                         return;
                     }
