@@ -2,6 +2,9 @@ package webcam;
 
 import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.awt.Image;
+import java.awt.Label;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
@@ -20,7 +23,6 @@ import java.util.List;
 import javax.swing.Box;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -30,15 +32,11 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
-import javax.swing.JTable;
 import javax.swing.JTextArea;
-import javax.swing.KeyStroke;
+import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
 import org.apache.log4j.Logger;
-
-import webcam.DBUtils;
-import webcam.Utils;
 
 import com.github.sarxos.webcam.Webcam;
 import com.github.sarxos.webcam.WebcamPanel;
@@ -46,14 +44,19 @@ import com.github.sarxos.webcam.WebcamResolution;
 import com.github.sarxos.webcam.WebcamUtils;
 import com.github.sarxos.webcam.util.ImageUtils;
 
-public class WebCam {
+public class WebCam extends JFrame{
+
+
 	private Logger logger=Logger.getLogger(this.getClass());
 
 	private static int num = 0;
-	private static int width = 640;
-	private static int height = 480;
+	private static int width = 640*3/2;
+	private static int height = 400*3/2;
 	
-	public static void start(){
+	JLabel imgLabel;
+	Image image;
+	
+	public WebCam(){
 		
 		System.out.println("相机初始化中....");
 		boolean checkCamera = true;
@@ -105,50 +108,78 @@ public class WebCam {
         	}
         });
 
-        // 面板
-        final JFrame window = new JFrame("图像采集");
-        JPanel jp1 = new JPanel(new GridLayout(1, 1));
-        JPanel jp2 = new JPanel(new GridLayout(1, 2));
-        JPanel jp3 = new JPanel();
-        JPanel jp4 = new JPanel(new GridLayout(1, 1));
+        // 右侧面板
+        JPanel phtotJp = new JPanel();
         
         // 控件
         final JTextArea textarea = new JTextArea();
+        textarea.setLineWrap(true);
         final JScrollPane jsp = new JScrollPane(textarea);//滚动条方法一
         //jsp.setViewportView(textarea);//滚动条方法二
+        //jsp.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);// 水平滚动条
+        jsp.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);// 垂直滚动条
         
         final JButton photoButton = new JButton("拍照");
         final JButton nextButton = new JButton("清空");
-        JLabel successLabel = new JLabel();
-        JLabel imgLabel = new JLabel();
+        final JLabel successLabel = new JLabel();
+        JTextField pathText = new JTextField();
+        pathText.setEditable(false);
         
         // 排版
         fileMenu.add(fileExport);
         fileMenu.add(fileClose);
         menuBar.add(fileMenu);
         
-        jp1.add(jsp);
-        jp2.add(photoButton);
-        jp2.add(nextButton);
-        jp3.add(successLabel);
-        jp4.add(imgLabel);
         
-       
         // 创建一个垂直盒子容器, 把上面 3 个 JPanel 串起来作为内容面板添加到窗口
-        Box vBox = Box.createVerticalBox();
+        Box hBox = Box.createHorizontalBox();
+        Box vBox1 = Box.createVerticalBox();
+        Box vBox1_hBox = Box.createHorizontalBox();
+        Box vBox2 = Box.createVerticalBox();
+        Box vBox2_hBox1 = Box.createHorizontalBox();
+        Box vBox2_hBox2 = Box.createHorizontalBox();
+
         if(checkCamera){
-        	vBox.add(camPanel);
+        	vBox1.add(camPanel);
         }	
-        //vBox.add(jp3);
-        vBox.add(jp1);
-        vBox.add(jp2);
-        window.getContentPane().add(vBox);
-        window.setJMenuBar(menuBar);
+        
+        // 两个按钮
+        vBox1_hBox.add(Box.createHorizontalStrut(130));
+        vBox1_hBox.add(photoButton);
+        vBox1_hBox.add(Box.createHorizontalStrut(50));
+        vBox1_hBox.add(nextButton);
+        vBox1_hBox.add(Box.createHorizontalStrut(130));
+        
+        // 成功提示
+        vBox2_hBox1.add(successLabel);
+        
+        // 文件路径
+        vBox2_hBox2.add(pathText);
+        vBox2_hBox2.setPreferredSize(new Dimension(100,10));
+        
+        // 组装盒子
+        vBox1.add(jsp);
+        vBox1.add(vBox1_hBox);
+        vBox2.add(vBox2_hBox1);
+        //vBox2.add(vBox2_hBox2);
+        vBox2.add(phtotJp);
+        
+        // 左右移动splitPane分隔符
+        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT); 
+        splitPane.setLeftComponent(vBox1);
+        splitPane.setRightComponent(vBox2);
+        
+        hBox.add(splitPane);
+        
+        this.getContentPane().add(hBox);
+        this.setJMenuBar(menuBar);
+        
         // 设置窗口参数
-        window.pack();
-        window.setVisible(true);
-        window.setSize(width/2, height/2);
-        window.setLocation(Utils.getWindowCenterWidth(width), Utils.getWindowCenterHeight(height));
+        this.setTitle("图像采集");
+        this.pack();
+        this.setVisible(true);
+        this.setSize(width, height);
+        this.setLocation(Utils.getWindowCenterWidth(width), Utils.getWindowCenterHeight(height));
 
 
 
@@ -156,7 +187,25 @@ public class WebCam {
         photoButton.setMnemonic(KeyEvent.VK_S);
         photoButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e)
-            {
+            {   
+            	
+//            	 // 右侧展示成功提示和图片
+                successLabel.setText("成功： " + new SimpleDateFormat("YYYY-MM-dd HH:mm:ss").format(new Date()));
+                successLabel.setAlignmentX(Label.LEFT);
+                
+               
+//               String path1 = Utils.getPropertyValue(this.getClass(),"config.properties", "path");
+//
+//                image = Toolkit.getDefaultToolkit().getImage(path1 + "4562152080799_6930452000140_6930452000157-20180919153103358.jpg");
+//        		if(imgLabel==null){
+//        			JLabel imgLabel = new JLabel(new ImageIcon(image.getScaledInstance(getWidth()/2, getHeight()/2-25, Image.SCALE_DEFAULT)));
+//        			imgLabel.setOpaque(false);
+//        			phtotJp.add(imgLabel, new Integer(-30001));
+//        			imgLabel.repaint();
+//        		}else{
+//        			imgLabel.setIcon(new ImageIcon(image));
+//        		}
+            	
             	photoButton.setEnabled(false);
             	
             	String textValue = textarea.getText();
@@ -188,14 +237,28 @@ public class WebCam {
                 // 保存barcodeList
                 Utils.saveBarcodeList(goodsListTextPath, textarea.getText());
                 
+                // 右侧展示成功提示和图片
+                successLabel.setAlignmentX(Label.LEFT);
+                successLabel.setText("成功： " + new SimpleDateFormat("YYYY-MM-dd HH:mm:ss").format(new Date()));
+                pathText.setText(newPath);
+                image = Toolkit.getDefaultToolkit().getImage(newPath);
+        		if(imgLabel==null){
+        			JLabel imgLabel = new JLabel(new ImageIcon(image.getScaledInstance(getWidth()/2, getHeight()/2-25, Image.SCALE_DEFAULT)));
+        			imgLabel.setOpaque(false);
+        			imgLabel.setBounds(0, 0, getWidth(), getHeight());
+        			phtotJp.add(imgLabel, new Integer(-30001));
+        			imgLabel.repaint();
+        		}else{
+        			imgLabel.setIcon(new ImageIcon(image));
+        		}
+        		
                 SwingUtilities.invokeLater(new Runnable() {
 
                     @Override
                     public void run()
                     {
-                        //JOptionPane.showMessageDialog(null, "截图成功");
+                        //JOptionPane.showMessageDialog(null, "拍照成功");
                         photoButton.setEnabled(true);
-                    	successLabel.setText("成功： " + new SimpleDateFormat("YYYY-MM-dd HH:mm:ss").format(new Date()));
                         num++;
                         return;
                     }
@@ -215,7 +278,7 @@ public class WebCam {
         });
         
         // 窗口关闭触发
-        window.addWindowListener(new WindowAdapter() {
+        this.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e)
             {
@@ -233,14 +296,14 @@ public class WebCam {
         });
         if(checkCamera){
         	System.out.println("相机打开成功");        	
-        	Utils.modifyComponentSize(window);
+        	Utils.modifyComponentSize(this);
         }else{
         	JOptionPane.showMessageDialog(null, "请检查是否连接相机");
         	//System.exit(0);
         }
 
         // 监控窗口大小变化
-        window.addComponentListener(new ComponentAdapter(){
+        this.addComponentListener(new ComponentAdapter(){
         	@Override public void componentResized(ComponentEvent e){
         		//modifyComponentSize(window);
         	}});
@@ -303,11 +366,7 @@ public class WebCam {
 			e.printStackTrace();
 		}
 	}
-	
-	
-
-	public static void main(String[] args) throws InterruptedException {
-		start();
-		
+	public static void main(String[] args) {
+		new WebCam();
 	}
 }
