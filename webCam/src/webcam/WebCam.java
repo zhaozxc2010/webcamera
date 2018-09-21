@@ -142,11 +142,12 @@ public class WebCam {
         //vBox.add(jp3);
         vBox.add(jp1);
         vBox.add(jp2);
-        window.setContentPane(vBox);
+        window.getContentPane().add(vBox);
         window.setJMenuBar(menuBar);
         // 设置窗口参数
         window.pack();
         window.setVisible(true);
+        window.setSize(width/2, height/2);
         window.setLocation(Utils.getWindowCenterWidth(width), Utils.getWindowCenterHeight(height));
 
 
