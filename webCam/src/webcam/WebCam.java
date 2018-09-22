@@ -109,10 +109,10 @@ public class WebCam extends JFrame{
         });
 
         // 右侧面板
-        JPanel phtotJp = new JPanel();
+        final JPanel phtotJp = new JPanel();
         
         // 控件
-        final JTextArea textarea = new JTextArea();
+        final JTextArea textarea = new JTextArea(10,10);
         textarea.setLineWrap(true);
         final JScrollPane jsp = new JScrollPane(textarea);//滚动条方法一
         //jsp.setViewportView(textarea);//滚动条方法二
@@ -122,7 +122,7 @@ public class WebCam extends JFrame{
         final JButton photoButton = new JButton("拍照");
         final JButton nextButton = new JButton("清空");
         final JLabel successLabel = new JLabel();
-        JTextField pathText = new JTextField();
+        final JTextField pathText = new JTextField();
         pathText.setEditable(false);
         
         // 排版
@@ -241,17 +241,20 @@ public class WebCam extends JFrame{
                 successLabel.setAlignmentX(Label.LEFT);
                 successLabel.setText("成功： " + new SimpleDateFormat("YYYY-MM-dd HH:mm:ss").format(new Date()));
                 pathText.setText(newPath);
+                
+                // 清空图片，重新加载
+                phtotJp.removeAll();
                 image = Toolkit.getDefaultToolkit().getImage(newPath);
-        		if(imgLabel==null){
-        			JLabel imgLabel = new JLabel(new ImageIcon(image.getScaledInstance(getWidth()/2, getHeight()/2-25, Image.SCALE_DEFAULT)));
-        			imgLabel.setOpaque(false);
-        			imgLabel.setBounds(0, 0, getWidth(), getHeight());
-        			phtotJp.add(imgLabel, new Integer(-30001));
-        			imgLabel.repaint();
-        		}else{
-        			imgLabel.setIcon(new ImageIcon(image));
-        		}
+            	ImageIcon imageIcon = new ImageIcon(image.getScaledInstance(getWidth()/2, getHeight()/2-25, Image.SCALE_DEFAULT));
+            	imgLabel = new JLabel();
+    			imgLabel.setIcon(imageIcon);
+    			imgLabel.setOpaque(false);
+    			imgLabel.setBounds(0, 0, getWidth(), getHeight());
+    			phtotJp.add(imgLabel, new Integer(-30001));
+    			imgLabel.repaint();
         		
+    			textarea.requestFocus();
+    			
                 SwingUtilities.invokeLater(new Runnable() {
 
                     @Override
