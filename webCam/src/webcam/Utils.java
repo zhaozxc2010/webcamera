@@ -35,6 +35,8 @@ import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
 
+import com.github.sarxos.webcam.util.ImageUtils;
+
 public class Utils
 {
 	private Logger logger=Logger.getLogger(this.getClass());
@@ -110,6 +112,23 @@ public class Utils
 		return sdf.format(new Date());
  	}
  	
+ 	/**
+	 * 获取国标码图片名
+	 * @param path
+	 * @param text
+	 */
+	public static String getBarcodeImgName(String text)
+	{
+		if(text.equals("")){
+			return "";
+		}
+    	String barcode = text.replace("\n", "_").trim();
+    	if(barcode.substring(barcode.length()-1).equals("_")){
+    		barcode = barcode.substring(0, barcode.length()-1);
+    	}
+    	return barcode + "" + getCurrentDateStr("YYYYMMddHHmmssSSS");
+	} 
+	
 	/**
 	 * 图片重命名为国标码
 	 * @param path

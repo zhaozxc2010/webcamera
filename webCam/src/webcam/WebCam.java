@@ -1,7 +1,6 @@
 package webcam;
 
 import java.awt.Dimension;
-import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.Label;
 import java.awt.Toolkit;
@@ -33,7 +32,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
-import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 
@@ -50,7 +48,6 @@ public class WebCam extends JFrame{
 
 	private Logger logger=Logger.getLogger(this.getClass());
 
-	private static int num = 0;
 	private static int width = 640*3/2;
 	private static int height = 400*3/2;
 	
@@ -93,8 +90,7 @@ public class WebCam extends JFrame{
         JMenuItem openFolder = new JMenuItem("打开目录", openIcon);
         openFolder.setMnemonic(KeyEvent.VK_O);
         openFolder.setMnemonic('O');// 设置快捷键
-        // 设置加速器
-        openFolder.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, KeyEvent.CTRL_MASK | KeyEvent.ALT_MASK));
+        openFolder.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, KeyEvent.CTRL_MASK | KeyEvent.ALT_MASK));// 设置加速器
         
         
         openFolder.setToolTipText("打开目录");
@@ -212,30 +208,13 @@ public class WebCam extends JFrame{
         this.setLocation(Utils.getWindowCenterWidth(width), Utils.getWindowCenterHeight(height));
 
 
-
         // 拍照
         photoButton.setMnemonic(KeyEvent.VK_S);
         photoButton.setMnemonic(KeyEvent.VK_C);
         photoButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e)
             {   
-//            	 // 右侧展示成功提示和图片
-//                successLabel.setText("成功： " + new SimpleDateFormat("YYYY-MM-dd HH:mm:ss").format(new Date()));
-//                successLabel.setAlignmentX(Label.LEFT);
-                
-               
-//               String path1 = Utils.getPropertyValue(this.getClass(),"config.properties", "path");
-//
-//                image = Toolkit.getDefaultToolkit().getImage(path1 + "4562152080799_6930452000140_6930452000157-20180919153103358.jpg");
-//        		if(imgLabel==null){
-//        			JLabel imgLabel = new JLabel(new ImageIcon(image.getScaledInstance(getWidth()/2, getHeight()/2-25, Image.SCALE_DEFAULT)));
-//        			imgLabel.setOpaque(false);
-//        			phtotJp.add(imgLabel, new Integer(-30001));
-//        			imgLabel.repaint();
-//        		}else{
-//        			imgLabel.setIcon(new ImageIcon(image));
-//        		}
-            	
+            	textarea.requestFocus();
             	photoButton.setEnabled(false);
             	
             	String textValue = textarea.getText();
@@ -245,12 +224,11 @@ public class WebCam extends JFrame{
             		return;
             	}
             	
-            	String goodsTextPath = Utils.getPropertyValue(this.getClass(),"config.properties", "goodsTextPath");
-            	String goodsListTextPath = Utils.getPropertyValue(this.getClass(),"config.properties", "goodsListTextPath");
             	String path = Utils.getPropertyValue(this.getClass(),"config.properties", "path");
             	String imgWidth = Utils.getPropertyValue(this.getClass(),"config.properties", "imgWidth");
             	String imgHeight = Utils.getPropertyValue(this.getClass(),"config.properties", "imgHeight");
-                String fileName = path + num;
+                String imgName = path + Utils.getBarcodeImgName(textarea.getText());
+                String imgPath =  imgName + "." + ImageUtils.FORMAT_JPG.toLowerCase();
                 
                 // 自动创建文件夹
                 File file=new File(path);
@@ -259,29 +237,20 @@ public class WebCam extends JFrame{
         		}
         		
                 // 生成图片
-                WebcamUtils.capture(webcam, fileName, ImageUtils.FORMAT_JPG);
-                
-                // 图片重命名为国标码
-                String newPath = Utils.updateImgName(path, textarea.getText());
+                WebcamUtils.capture(webcam, imgName, ImageUtils.FORMAT_JPG);
                 
                 // 裁剪图片
-                Utils.corpImg(newPath, Integer.parseInt(imgWidth), Integer.parseInt(imgHeight));
+                Utils.corpImg(imgPath, Integer.parseInt(imgWidth), Integer.parseInt(imgHeight));
             	
-                // 保存barcode
-                Utils.saveBarcode(goodsTextPath, textarea.getText());
-                
-                // 保存barcodeList
-                Utils.saveBarcodeList(goodsListTextPath, textarea.getText());
-                
                 // 右侧展示成功提示和图片
                 successLabel.setAlignmentX(Label.LEFT);
                 successLabel.setText("成功： " + new SimpleDateFormat("YYYY-MM-dd HH:mm:ss").format(new Date()));
-                pathText.setText(newPath);
+                pathText.setText(imgPath);
                 openImg.setVisible(true); // 展示按钮
                 
                 // 清空图片，重新加载
                 phtotJp.removeAll();
-                image = Toolkit.getDefaultToolkit().getImage(newPath);
+                image = Toolkit.getDefaultToolkit().getImage(imgPath);
             	ImageIcon imageIcon = new ImageIcon(image.getScaledInstance(getWidth()/5*2, getHeight()/2-25, Image.SCALE_DEFAULT));
             	imgLabel = new JLabel();
     			imgLabel.setIcon(imageIcon);
@@ -290,16 +259,20 @@ public class WebCam extends JFrame{
     			phtotJp.add(imgLabel, new Integer(-30001));
     			imgLabel.repaint();
         		
-    			textarea.requestFocus();
-    			
                 SwingUtilities.invokeLater(new Runnable() {
 
                     @Override
                     public void run()
                     {
-                        //JOptionPane.showMessageDialog(null, "拍照成功");
+                    	String goodsTextPath = Utils.getPropertyValue(this.getClass(),"config.properties", "goodsTextPath");
+                    	String goodsListTextPath = Utils.getPropertyValue(this.getClass(),"config.properties", "goodsListTextPath");
+                    	
+                    	// 保存barcode
+                        Utils.saveBarcode(goodsTextPath, textarea.getText());
+                        // 保存barcodeList
+                        Utils.saveBarcodeList(goodsListTextPath, textarea.getText());
+                        
                         photoButton.setEnabled(true);
-                        num++;
                         return;
                     }
                 });
@@ -313,9 +286,7 @@ public class WebCam extends JFrame{
             {
             	textarea.setText("");
             	textarea.requestFocus();
-            	num = 0;
             }
-
         });
         
         openImg.addActionListener(new ActionListener()
