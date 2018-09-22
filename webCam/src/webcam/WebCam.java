@@ -190,8 +190,8 @@ public class WebCam extends JFrame{
             {   
             	
 //            	 // 右侧展示成功提示和图片
-                successLabel.setText("成功： " + new SimpleDateFormat("YYYY-MM-dd HH:mm:ss").format(new Date()));
-                successLabel.setAlignmentX(Label.LEFT);
+//                successLabel.setText("成功： " + new SimpleDateFormat("YYYY-MM-dd HH:mm:ss").format(new Date()));
+//                successLabel.setAlignmentX(Label.LEFT);
                 
                
 //               String path1 = Utils.getPropertyValue(this.getClass(),"config.properties", "path");
@@ -245,7 +245,7 @@ public class WebCam extends JFrame{
                 // 清空图片，重新加载
                 phtotJp.removeAll();
                 image = Toolkit.getDefaultToolkit().getImage(newPath);
-            	ImageIcon imageIcon = new ImageIcon(image.getScaledInstance(getWidth()/2, getHeight()/2-25, Image.SCALE_DEFAULT));
+            	ImageIcon imageIcon = new ImageIcon(image.getScaledInstance(getWidth()/5*2, getHeight()/2-25, Image.SCALE_DEFAULT));
             	imgLabel = new JLabel();
     			imgLabel.setIcon(imageIcon);
     			imgLabel.setOpaque(false);
