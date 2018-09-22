@@ -102,6 +102,12 @@ public class WebCam extends JFrame{
         	public void actionPerformed(ActionEvent event) {
         		try {
 					String path = Utils.getPropertyValue(this.getClass(),"config.properties", "path");
+					// 自动创建文件夹
+	                File file=new File(path);
+	        		if(!file.exists()){//如果文件夹不存在
+	        			file.mkdir();//创建文件夹
+	        		}
+					
 					java.awt.Desktop.getDesktop().open(new File(path));
 				}catch(IOException e1){
 					e1.printStackTrace();
@@ -115,7 +121,7 @@ public class WebCam extends JFrame{
         fileExport.setToolTipText("一键导出Excel");
         fileExport.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent event) {
-        		new WebCam().exportExcel();
+        		exportExcel();
         	}
         });
         
@@ -209,6 +215,7 @@ public class WebCam extends JFrame{
 
         // 拍照
         photoButton.setMnemonic(KeyEvent.VK_S);
+        photoButton.setMnemonic(KeyEvent.VK_C);
         photoButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e)
             {   
@@ -300,6 +307,7 @@ public class WebCam extends JFrame{
         });
         
         nextButton.setMnemonic(KeyEvent.VK_DELETE);
+        nextButton.setMnemonic(KeyEvent.VK_D);
         nextButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e)
             {
