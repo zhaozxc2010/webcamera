@@ -34,6 +34,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 
 import org.apache.log4j.Logger;
@@ -88,6 +89,26 @@ public class WebCam extends JFrame{
         JMenu fileMenu = new JMenu("文件");
         fileMenu.setMnemonic(KeyEvent.VK_F);
         
+        ImageIcon openIcon = new ImageIcon("pic/exportIcon.jpg");
+        JMenuItem openFolder = new JMenuItem("打开目录", openIcon);
+        openFolder.setMnemonic(KeyEvent.VK_O);
+        openFolder.setMnemonic('O');// 设置快捷键
+        // 设置加速器
+        openFolder.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, KeyEvent.CTRL_MASK | KeyEvent.ALT_MASK));
+        
+        
+        openFolder.setToolTipText("打开目录");
+        openFolder.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent event) {
+        		try {
+					String path = Utils.getPropertyValue(this.getClass(),"config.properties", "path");
+					java.awt.Desktop.getDesktop().open(new File(path));
+				}catch(IOException e1){
+					e1.printStackTrace();
+				}
+        	}
+        });
+        
         ImageIcon exportIcon = new ImageIcon("pic/exportIcon.jpg");
         JMenuItem fileExport = new JMenuItem("一键导出Excel", exportIcon);
         fileExport.setMnemonic(KeyEvent.VK_E);
@@ -127,6 +148,7 @@ public class WebCam extends JFrame{
         openImg.setVisible(false); //隐藏按钮的方法
 
         // 排版
+        fileMenu.add(openFolder);
         fileMenu.add(fileExport);
         fileMenu.add(fileClose);
         menuBar.add(fileMenu);
