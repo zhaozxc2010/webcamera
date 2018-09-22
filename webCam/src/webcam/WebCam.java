@@ -222,6 +222,12 @@ public class WebCam extends JFrame{
             	String imgHeight = Utils.getPropertyValue(this.getClass(),"config.properties", "imgHeight");
                 String fileName = path + num;
                 
+                // 自动创建文件夹
+                File file=new File(path);
+        		if(!file.exists()){//如果文件夹不存在
+        			file.mkdir();//创建文件夹
+        		}
+        		
                 // 生成图片
                 WebcamUtils.capture(webcam, fileName, ImageUtils.FORMAT_JPG);
                 
