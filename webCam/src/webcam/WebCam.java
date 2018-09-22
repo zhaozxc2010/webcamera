@@ -122,9 +122,10 @@ public class WebCam extends JFrame{
         final JButton photoButton = new JButton("拍照");
         final JButton nextButton = new JButton("清空");
         final JLabel successLabel = new JLabel();
-        final JTextField pathText = new JTextField();
-        pathText.setEditable(false);
-        
+        final JLabel pathText = new JLabel();
+        final JButton openImg = new JButton("查看");
+        openImg.setVisible(false); //隐藏按钮的方法
+
         // 排版
         fileMenu.add(fileExport);
         fileMenu.add(fileClose);
@@ -155,13 +156,14 @@ public class WebCam extends JFrame{
         
         // 文件路径
         vBox2_hBox2.add(pathText);
-        vBox2_hBox2.setPreferredSize(new Dimension(100,10));
+        vBox2_hBox2.add(Box.createHorizontalStrut(10));
+        vBox2_hBox2.add(openImg);
         
         // 组装盒子
         vBox1.add(jsp);
         vBox1.add(vBox1_hBox);
         vBox2.add(vBox2_hBox1);
-        //vBox2.add(vBox2_hBox2);
+        vBox2.add(vBox2_hBox2);
         vBox2.add(phtotJp);
         
         // 左右移动splitPane分隔符
@@ -188,7 +190,6 @@ public class WebCam extends JFrame{
         photoButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e)
             {   
-            	
 //            	 // 右侧展示成功提示和图片
 //                successLabel.setText("成功： " + new SimpleDateFormat("YYYY-MM-dd HH:mm:ss").format(new Date()));
 //                successLabel.setAlignmentX(Label.LEFT);
@@ -247,6 +248,7 @@ public class WebCam extends JFrame{
                 successLabel.setAlignmentX(Label.LEFT);
                 successLabel.setText("成功： " + new SimpleDateFormat("YYYY-MM-dd HH:mm:ss").format(new Date()));
                 pathText.setText(newPath);
+                openImg.setVisible(true); // 展示按钮
                 
                 // 清空图片，重新加载
                 phtotJp.removeAll();
@@ -285,6 +287,23 @@ public class WebCam extends JFrame{
             }
 
         });
+        
+        openImg.addActionListener(new ActionListener()
+		{
+			@Override
+			public void actionPerformed(ActionEvent e)
+			{
+				try
+				{
+					String path = Utils.getPropertyValue(this.getClass(),"config.properties", "path");
+					java.awt.Desktop.getDesktop().open(new File(path));
+				}
+				catch(IOException e1)
+				{
+					e1.printStackTrace();
+				}
+			}
+		});
         
         // 窗口关闭触发
         this.addWindowListener(new WindowAdapter() {
