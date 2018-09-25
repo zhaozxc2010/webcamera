@@ -314,7 +314,7 @@ public class Utils
 		try {
 			conn = DBUtils.getConnection();
 			
-			String[] barcodeArr = barcodes.split(",");
+			String[] barcodeArr = barcodes.split("_");
 			String query = "SELECT sBarcode,sGoodsName from posstores103.tposgoods where sBarcode in (";
 			StringBuilder queryBuilder = new StringBuilder(query);
 			for ( int i = 0; i < barcodeArr.length; i++) {
@@ -370,11 +370,11 @@ public class Utils
     		if(".jpg".equals(fileType.toLowerCase()) == false && ".jpeg".equals(fileType.toLowerCase()) == false){
     			continue;
     		}
-    		String barcodes = fileAllName.substring(0,fileAllName.lastIndexOf("-"));
-    		String newFileAllName = barcodes + fileType;
+    		//String barcodes = fileAllName.substring(0,fileAllName.lastIndexOf("-"));
+    		//String newFileAllName = barcodes + fileType;
     		
-    		pathList.add(newFileAllName);
-    		System.out.println(newFileAllName);
+    		pathList.add(fileAllName);
+    		System.out.println(fileAllName);
         }
 		return pathList;
 	}

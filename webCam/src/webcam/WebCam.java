@@ -346,34 +346,31 @@ public class WebCam extends JFrame{
 		try {
 			// 1. 读取照片地址
 	    	String path = Utils.getPropertyValue(this.getClass(),"config.properties", "path");
+	    	String excelPhotoPath = Utils.getPropertyValue(this.getClass(),"config.properties", "excelPhotoPath");
 	    	List<String>  photoPathList = Utils.getPhotoPathListFromFile(path);
 	    	
 			// 2. 读取goodsList.txt，循环每一行，获取barcodes
-	    	String goodsListTextPath = Utils.getPropertyValue(this.getClass(),"config.properties", "goodsListTextPath");
-	    	List<String>  barcodesList = Utils.getLineListFromFile(goodsListTextPath);
+	    	//String goodsListTextPath = Utils.getPropertyValue(this.getClass(),"config.properties", "goodsListTextPath");
+	    	//List<String>  barcodesList = Utils.getLineListFromFile(goodsListTextPath);
 	    	
 	    	// 3. 根据barcode提取商品信息
 	    	List<HashMap<String, String>> goodsInfoList = new ArrayList<HashMap<String, String>>();  
-	    	for(String barcodes : barcodesList){
+	    	for(String barcodes : photoPathList){
+	    		String photoPath = barcodes;
+	    		if(barcodes.indexOf("-") != -1){
+	    			barcodes = barcodes.substring(0, barcodes.lastIndexOf("-"));
+	    		}else{
+	    			barcodes = barcodes.substring(0, barcodes.lastIndexOf("."));
+	    		}
 	    		HashMap<String, String> map = Utils.getGoodsInfoFromDB(barcodes);
 	    		if(map!=null && map.isEmpty() == false){
+	    			// 照片地址补充进商品信息
+	    			map.put("path", excelPhotoPath + "\\" + photoPath);
 	    			goodsInfoList.add(map);
 	    		}
 	    	}
-	    	//DBUtils.closeResource(DBUtils.getConnection());
-	    	
-	    	// 4. 照片地址补充进商品信息
-	    	String excelPhotoPath = Utils.getPropertyValue(this.getClass(),"config.properties", "excelPhotoPath");
-	    	if(photoPathList.size() != goodsInfoList.size()){
-				System.out.println("error:照片数量和文本记录条数不一致，导出失败！");
-				return;
-			}
-			for(int i = 0;i<photoPathList.size();i++){
-				HashMap<String, String> map  = goodsInfoList.get(i);
-				map.put("path", excelPhotoPath + "\\" + photoPathList.get(i));
-			}
 			
-			// 5. 组装数据生成excel
+			// 4. 组装数据生成excel
 	    	String exportPath = Utils.getPropertyValue(this.getClass(), "config.properties", "exportPath");
 	    	boolean exportFlag = Utils.exportGoodsExcel(exportPath, goodsInfoList);
 		
