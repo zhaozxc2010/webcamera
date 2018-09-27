@@ -311,10 +311,18 @@ public class Utils
 		PreparedStatement ps = null;
 		ResultSet rs = null;
 		HashMap<String, String> map = new HashMap<String, String>();
+		String newBarcodes = checkBarcode(barcodes);
+		
 		try {
 			conn = DBUtils.getConnection();
 			
-			String[] barcodeArr = barcodes.split("_");
+			String[] barcodeArr = newBarcodes.split("_");
+			HashMap<String, String> keyMap = new HashMap<String, String>();
+			for(String key : barcodeArr){
+				keyMap.put(key, "");
+			}
+			map.put("inputGoodCount", keyMap.size() + "");
+			
 			String query = "SELECT sBarcode,sGoodsName from posstores103.tposgoods where sBarcode in (";
 			StringBuilder queryBuilder = new StringBuilder(query);
 			for ( int i = 0; i < barcodeArr.length; i++) {
@@ -334,9 +342,14 @@ public class Utils
 				map.put("barcode" + i, rs.getString(1));
 				map.put("goodsName" + i, rs.getString(2));
 				i++;
-				System.out.println(rs.getString(1) + "\t" + rs.getString(2)+ "\t\t");// 入如果返回的是int类型可以用getInt()
-				
+				//System.out.println(rs.getString(1) + "\t" + rs.getString(2)+ "\t\t");// 入如果返回的是int类型可以用getInt()
 			}
+			map.put("outGoodCount", (i-1) + "");
+
+			if(keyMap.size()!=i-1){
+				System.out.println("DB中无此商品："+newBarcodes.replaceAll("_", ","));
+			}
+			
 		} catch (SQLException e) {
 			System.out.println("MySQL操作错误");
 			e.printStackTrace();
@@ -362,7 +375,7 @@ public class Utils
 	public static List<String> getPhotoPathListFromFile(String path) {
 		List<File> fileList = getFileSort(path);
         List<String> pathList = new ArrayList<String>();
-		 
+		int errCount = 0;
         for (File file : fileList) {
         	String fileAllName = file.getName();
         	String fileName = fileAllName.substring(0,fileAllName.lastIndexOf("."));
@@ -374,11 +387,56 @@ public class Utils
     		//String newFileAllName = barcodes + fileType;
     		
     		pathList.add(fileAllName);
-    		System.out.println(fileAllName);
+    		//System.out.println(fileAllName);
         }
+        System.out.println(errCount);
 		return pathList;
 	}
 	
+	private static String checkBarcode(String barcodes){
+		String[] barcodeArr = barcodes.split("_");
+
+		for(String barcode : barcodeArr){
+			String newBarcode = "";
+			if(barcode.length() != 13 && barcode.startsWith("6") == false){
+				newBarcode = "6" + barcode ;
+				//System.err.println(barcode + "===>>>>" + newBarcode);
+				if(barcode.equals("6931958014143")){
+					newBarcode = "6931958014099";
+				}
+				if(barcode.equals("066001114505")){
+					newBarcode = "9066001114505";
+				}
+				if(barcode.equals("555104515291")){
+					newBarcode = "9555104515291";
+				}
+			}else{
+				if(barcode.length() != 13){
+					if(barcode.equals("640110242032")){
+						newBarcode = "7" + barcode ;
+					}
+					else 
+					if(barcode.equals("66923644285036")){
+						newBarcode = "6923644266066";
+					}else{
+						System.err.println(barcode);						
+					}
+				}
+			}
+			if(StringUtils.isNotBlank(newBarcode)){
+				if(checkStandardBarcode(newBarcode)==false){
+					System.err.println("补充条码，校验失败："+barcode + "===>>>>" + newBarcode);	
+				}
+				barcodes = barcodes.replace(barcode, newBarcode);
+			}else{
+				if(checkStandardBarcode(barcode) == false){
+					System.err.println("原条码，校验失败："+barcode + "===>>>>" + newBarcode);	
+				}
+			}
+			
+		}
+		return barcodes;
+	}
 	 /**
      * 获取目录下所有文件(按时间排序)
      * 
@@ -512,6 +570,45 @@ public class Utils
 			e.printStackTrace();
 		}
 		return false;
+	}
+	
+	
+	/**
+	 * 校验条码
+	 * @param barcode
+	 * @return
+	 */
+	public static boolean checkStandardBarcode(String barcode){
+		
+		if(barcode.length()!=13 && barcode.length()!=18){
+			return false;
+		}
+		int lastCharOfBarcode = Integer.parseInt(barcode.substring(barcode.length()-1));
+	    
+	    int codeJ=0; //奇位和
+	    int codeO=0; //偶位和
+	    int c=0;
+	    
+	    for(int i = 0; i<barcode.length()-1; i++){
+	    	if(i==0){
+	    		codeJ += (barcode.charAt(i)-'0');
+	    	}else{
+	    		if(i%2==0){
+	    			codeJ += (barcode.charAt(i)-'0');
+	    		}
+	    		if(i%2==1){
+	    			codeO += (barcode.charAt(i)-'0');
+	    		}
+	    	}
+	    }
+	    if(barcode.length()==13){
+	    	c = (codeJ + codeO * 3) % 10;
+	    }
+	    if(barcode.length()==18){
+	    	c = (codeO + codeJ * 3) % 10;
+	    }
+	    int cc = (10 - c) % 10;
+	    return lastCharOfBarcode == cc;
 	}
 
 }

@@ -355,6 +355,10 @@ public class WebCam extends JFrame{
 	    	
 	    	// 3. 根据barcode提取商品信息
 	    	List<HashMap<String, String>> goodsInfoList = new ArrayList<HashMap<String, String>>();  
+	    	System.out.println("照片总数："+photoPathList.size());
+	    	System.out.println("DB查询中...");
+	    	int inputAllGoodCount = 0;
+	    	int outAllGoodCount = 0;
 	    	for(String barcodes : photoPathList){
 	    		String photoPath = barcodes;
 	    		if(barcodes.indexOf("-") != -1){
@@ -363,13 +367,16 @@ public class WebCam extends JFrame{
 	    			barcodes = barcodes.substring(0, barcodes.lastIndexOf("."));
 	    		}
 	    		HashMap<String, String> map = Utils.getGoodsInfoFromDB(barcodes);
-	    		if(map!=null && map.isEmpty() == false){
+	    		if(map != null && map.isEmpty() == false){
+	    			inputAllGoodCount += Integer.parseInt(map.get("inputGoodCount"));
+	    			outAllGoodCount += Integer.parseInt(map.get("outGoodCount"));
 	    			// 照片地址补充进商品信息
 	    			map.put("path", excelPhotoPath + "\\" + photoPath);
 	    			goodsInfoList.add(map);
 	    		}
 	    	}
-			
+			System.out.println("输入商品数：" + inputAllGoodCount);
+			System.out.println("输出商品数：" + outAllGoodCount);
 			// 4. 组装数据生成excel
 	    	String exportPath = Utils.getPropertyValue(this.getClass(), "config.properties", "exportPath");
 	    	boolean exportFlag = Utils.exportGoodsExcel(exportPath, goodsInfoList);
