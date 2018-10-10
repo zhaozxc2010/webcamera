@@ -45,6 +45,7 @@ import com.github.sarxos.webcam.util.ImageUtils;
 
 public class WebCam extends JFrame{
 
+	private static final long serialVersionUID = 457808417085388252L;
 
 	private Logger logger=Logger.getLogger(this.getClass());
 
@@ -214,15 +215,22 @@ public class WebCam extends JFrame{
         photoButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e)
             {   
-            	textarea.requestFocus();
-            	photoButton.setEnabled(false);
-            	
+            	// 校验条码是否为空
             	String textValue = textarea.getText();
             	if(textValue == null || "".equals(textValue)){
             		JOptionPane.showMessageDialog(null, "请先扫描商品条形码");
-            		photoButton.setEnabled(true);
             		return;
             	}
+            	// 校验条码合法性
+            	if(!Utils.validateInsertBarcode(textarea.getText())){
+					JOptionPane.showMessageDialog(null, "请检验条码是否正确");
+					return;
+				}
+            	
+            	// 文本框获取焦点
+            	textarea.requestFocus();
+            	// 拍照按钮不可点击
+            	photoButton.setEnabled(false);
             	
             	String path = Utils.getPropertyValue(this.getClass(),"config.properties", "path");
             	String imgWidth = Utils.getPropertyValue(this.getClass(),"config.properties", "imgWidth");
@@ -271,7 +279,7 @@ public class WebCam extends JFrame{
                         Utils.saveBarcode(goodsTextPath, textarea.getText());
                         // 保存barcodeList
                         Utils.saveBarcodeList(goodsListTextPath, textarea.getText());
-                        
+                        // 恢复拍照按钮可点击
                         photoButton.setEnabled(true);
                         return;
                     }
@@ -328,7 +336,6 @@ public class WebCam extends JFrame{
         	Utils.modifyComponentSize(this);
         }else{
         	JOptionPane.showMessageDialog(null, "请检查是否连接相机");
-        	//System.exit(0);
         }
 
         // 监控窗口大小变化
@@ -395,7 +402,6 @@ public class WebCam extends JFrame{
 	    	}
 	    	
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

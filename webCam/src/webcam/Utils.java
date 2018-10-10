@@ -611,4 +611,20 @@ public class Utils
 	    return lastCharOfBarcode == cc;
 	}
 
+	/**
+	 * 校验输入的条码
+	 * @param text
+	 */
+	public static boolean validateInsertBarcode(String text)
+	{
+		String[] barcodeArr = text.split("\n");
+
+		for(String barcode : barcodeArr) {
+			if(!checkStandardBarcode(barcode)){
+				return false;
+			}
+		}
+		return true;
+	}
+
 }
